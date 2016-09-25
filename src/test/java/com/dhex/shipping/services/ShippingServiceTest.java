@@ -7,9 +7,6 @@ import com.dhex.shipping.model.ShippingStatus;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.internal.matchers.Not;
-
-import java.util.ArrayList;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.notNullValue;
@@ -29,14 +26,14 @@ public class ShippingServiceTest {
     }
 
     @Test
-    public void shouldReturnAndIdAndDateWhenRegisteringStatus() throws Exception {
+    public void shouldReturnAnIdAndDateWhenRegisteringStatus() throws Exception {
         ShippingService shippingService = new ShippingService();
 
         ShippingRequest shippingRequest = shippingService
                 .registerRequest(new SendingRequestParameterList("Juan Perez", "Jorge Quispe", "Calle Los Negocios 444", 133, null));
 
         ShippingStatus shippingStatus = shippingService
-                .registerStatus(shippingRequest.getId(), "Lima", "Internal", null);
+                .registerStatus(new ShippingStatusParameterList(shippingRequest.getId(), "Lima", "internal", null));
 
         assertThat(shippingStatus.getId(), is(notNullValue()));
         assertThat(shippingStatus.getMoment(), is(notNullValue()));
@@ -51,11 +48,11 @@ public class ShippingServiceTest {
 
         String requestId = shippingRequest.getId();
         String location = "Lima";
-        String status = "Internal";
+        String status = "internal";
         String observations = "Everything is OK";
 
         ShippingStatus shippingStatus = shippingService
-                .registerStatus(requestId, location, status, observations);
+                .registerStatus(new ShippingStatusParameterList(requestId, location, status, observations));
 
         assertThat(shippingStatus.getLocation(), is(location));
         assertThat(shippingStatus.getStatus(), is(status));
@@ -63,7 +60,7 @@ public class ShippingServiceTest {
     }
 
     @Test
-    public void shouldThrowNotValidShippinhStatusExceptionIfStatusIsInvalid() {
+    public void shouldThrowNotValidShippingStatusExceptionIfStatusIsInvalid() {
         ShippingService shippingService = new ShippingService();
 
         ShippingRequest shippingRequest = shippingService
@@ -73,7 +70,7 @@ public class ShippingServiceTest {
 
         expectedException.expect(NotValidShippingStatusException.class);
         ShippingStatus shippingStatus = shippingService
-                .registerStatus(shippingRequest.getId(), "Lima", status, null);
+                .registerStatus(new ShippingStatusParameterList(shippingRequest.getId(), "Lima", status, null));
     }
 
     @Test
@@ -82,7 +79,7 @@ public class ShippingServiceTest {
 
         expectedException.expect(InvalidArgumentDhexException.class);
         ShippingStatus shippingStatus = shippingService
-                .registerStatus("", "Lima", "on hold", null);
+                .registerStatus(new ShippingStatusParameterList("", "Lima", "on hold", null));
     }
 
     @Test
@@ -94,7 +91,7 @@ public class ShippingServiceTest {
 
         expectedException.expect(InvalidArgumentDhexException.class);
         ShippingStatus shippingStatus = shippingService
-                .registerStatus(shippingRequest.getId(), "", "on hold", null);
+                .registerStatus(new ShippingStatusParameterList(shippingRequest.getId(), "", "on hold", null));
     }
 
     @Test
@@ -106,6 +103,6 @@ public class ShippingServiceTest {
 
         expectedException.expect(InvalidArgumentDhexException.class);
         ShippingStatus shippingStatus = shippingService
-                .registerStatus(shippingRequest.getId(), "Lima", "", null);
+                .registerStatus(new ShippingStatusParameterList(shippingRequest.getId(), "Lima", "", null));
     }
 }

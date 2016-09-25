@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.dhex.shipping.model.ShippingRequest.createShippingRequest;
+import static java.util.Arrays.asList;
 
 public class ShippingService {
     private long sequenceId = 0;
@@ -94,46 +95,78 @@ public class ShippingService {
         return totalCost;
     }
 
-    public ShippingStatus registerStatus(String reqId, String loc, String stat, String obs) {
-        // Search the shipping request that matches with request ID.
-        // Otherwise throws an exception.
-        ShippingRequest shipReq = storedShippingRequests.stream()
-                .limit(1)
-                .filter(sr -> sr.getId().equals(reqId))
-                .findFirst()
-                .orElseThrow(() -> new ShippingNotFoundException(reqId));
-        ShippingStatus lastStatus = shipReq.getLastStatus();
+    public ShippingStatus registerStatus(ShippingStatusParameterList shippingStatusParameterList) {
+        validateStatusParameters(shippingStatusParameterList);
+
+        ShippingRequest shippingRequest = getShippingRequest(shippingStatusParameterList.getRequestId());
+        ShippingStatus lastStatus = shippingRequest.getLastStatus();
+
+        validateStatus(shippingStatusParameterList.getStatus(), lastStatus);
+
+        String statusId = generateStatusId(shippingRequest);
+        ShippingStatus shippingStatus = new ShippingStatus(
+                statusId, shippingStatusParameterList.getLocation(),
+                shippingStatusParameterList.getStatus(), OffsetDateTime.now(),
+                shippingStatusParameterList.getObservations()
+        );
+        shippingRequest.addStatus(shippingStatus);
+
+        return shippingStatus;
+    }
+
+    private void validateStatusParameters(ShippingStatusParameterList shippingStatusParameterList) {
+        validateParameter(shippingStatusParameterList.getLocation(), "Location");
+        validateParameter(shippingStatusParameterList.getStatus(), "Status");
+        validateParameter(shippingStatusParameterList.getRequestId(), "Request ID");
+    }
+
+    private void validateStatus(String status, ShippingStatus lastStatus) {
         // Status can be changed from "In transit" or "Internal" to any other status (including "In transit").
         // Status can be changed only from "On hold" to "In transit".
         // Any other status cannot be changed.
-        if(lastStatus == null || lastStatus.getStatus().equalsIgnoreCase("internal")) {
-            // This is the case of ShippingRequest that was just created.
+        String internal = "internal";
+        String inTransit = "in transit";
+        String onHold = "on hold";
+        List<String> validStatuses = asList(internal, inTransit, onHold);
+
+        if (!validStatuses.contains(status)) {
+            throw new NotValidShippingStatusException(status, status);
         }
-        else if(!lastStatus.getStatus().equalsIgnoreCase("in transit")) {
-            if(lastStatus.getStatus().equalsIgnoreCase("on hold") && !stat.equalsIgnoreCase("in transit"))
-                throw new NotValidShippingStatusException(lastStatus.getStatus(), stat);
-            else if(!lastStatus.getStatus().equalsIgnoreCase("on hold"))
-                throw new NotValidShippingStatusException(lastStatus.getStatus(), stat);
+
+        if (lastStatus != null && !lastStatus.getStatus().equalsIgnoreCase(internal)) {
+            if(!lastStatus.getStatus().equalsIgnoreCase(inTransit)) {
+                if(lastStatus.getStatus().equalsIgnoreCase(onHold) && !status.equalsIgnoreCase(inTransit))
+                    throw new NotValidShippingStatusException(lastStatus.getStatus(), status);
+                else if(!lastStatus.getStatus().equalsIgnoreCase(onHold))
+                    throw new NotValidShippingStatusException(lastStatus.getStatus(), status);
+            }
         }
+    }
+
+    private String generateStatusId(ShippingRequest shippingRequest) {
         // According to the rules of the business, this ID should be conformed of:
         // - Prefix "S".
         // - Followed by the shipping request ID.
         // - Followed by a dash.
         // - And finally the 3 digits of a sequential number for all the statuses for that shipping request.
-        String statusId = "S" + shipReq.getId() + "-" + String.format("%03d", shipReq.getStatusList().size() + 1);
-        ShippingStatus shipStat = new ShippingStatus(statusId, loc, stat, OffsetDateTime.now(), obs);
-        shipReq.addStatus(shipStat);
-        return shipStat;
+
+        return "S" + shippingRequest.getId() + "-" + String.format("%03d", shippingRequest.getStatusList().size() + 1);
+    }
+
+    private ShippingRequest getShippingRequest(String requestId) {
+        // Search the shipping request that matches with request ID.
+        // Otherwise throws an exception.
+        return storedShippingRequests.stream()
+                    .limit(1)
+                    .filter(sr -> sr.getId().equals(requestId))
+                    .findFirst()
+                    .orElseThrow(() -> new ShippingNotFoundException(requestId));
     }
 
     public List<ShippingRequestTrack> trackStatusOf(String reqId) {
         // Search the shipping request that matches with request ID.
         // Otherwise throws an exception.
-        ShippingRequest shipReq = storedShippingRequests.stream()
-                .limit(1)
-                .filter(sr -> sr.getId().equals(reqId))
-                .findFirst()
-                .orElseThrow(() -> new ShippingNotFoundException(reqId));
+        ShippingRequest shipReq = getShippingRequest(reqId);
 
         LinkedList<ShippingRequestTrack> tracks = new LinkedList<>();
         // We have to return each status transformed into track
