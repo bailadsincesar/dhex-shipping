@@ -64,9 +64,16 @@ public class CountryController {
         return ResponseEntity.ok(createListOf(countries));
     }
 
-    @RequestMapping(value = "/id", method = GET)
-    public ResponseEntity<Country> get(@RequestBody long id) {
+    @RequestMapping(value="/id/{id}", method = GET)
+    public ResponseEntity<Country> get(@PathVariable("id") long id) {
         Country country = countryService.get(id);
-        return ResponseEntity.ok(country);
+            return ResponseEntity
+                    .ok(country);
+    }
+
+    @RequestMapping(value="/enabled/{status}", method = GET)
+    public ResponseEntity<ListOf<Country>> get(@PathVariable("status") Boolean status) {
+        List<Country> countries = countryService.listCountriesByStatus(status);
+        return ResponseEntity.ok(createListOf(countries));
     }
 }

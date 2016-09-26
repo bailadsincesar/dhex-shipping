@@ -48,14 +48,25 @@ public class CountryBasicDao implements CountryDao {
 
     @Override
     public List<Country> listAll() {
+
         return new ArrayList<>(countries);
     }
 
+    @Override
+    public List<Country> listCountriesByStatus(Boolean enabled){
+        List<Country> countriesResult = new ArrayList<>();
+        for (Country c: countries) {
+            if(enabled.equals(c.isEnabled()))
+                countriesResult.add(c);
+        }
+        return countriesResult;
+    }
+
+
     private Country findCountry(long countryId){
-        Country country = null;
         for (Country c: countries) {
             if(countryId == c.getId())
-                return country;
+                return c;
         }
         String errorMessage = String.format(NON_EXISTING_COUNTRY_ID_ERROR_MESSAGE, countryId);
         throw new NoExistingEntityException(errorMessage);

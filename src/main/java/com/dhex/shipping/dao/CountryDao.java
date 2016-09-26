@@ -8,6 +8,7 @@ public interface CountryDao {
     Country insert(String countryName);
     boolean update(Country country);
     Country getCountry(long id);
+    List<Country> listCountriesByStatus(Boolean enabled);
 
     List<Country> listAll();
 }

@@ -62,8 +62,8 @@ public class CityController {
         return ResponseEntity.ok(createListOf(cities));
     }
 
-    @RequestMapping(value = "/id", method = GET)
-    public ResponseEntity<City> get(@RequestBody long id) {
+    @RequestMapping(value = "/id/{id}", method = GET)
+    public ResponseEntity<City> get(@PathVariable("id") long id) {
         City city = cityService.get(id);
         return ResponseEntity.ok(city);
     }

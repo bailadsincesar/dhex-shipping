@@ -100,6 +100,18 @@ public class CountryControllerIntegrationTesting {
                 .statusCode(BAD_REQUEST.value());
     }
 
+    @Test
+    public void shouldReturn200WhenCountryIsFound() throws Exception {
+        given()
+                .contentType("application/json")
+                .body(4L)
+                .when()
+                .get("/countries/id")
+                .then()
+                .assertThat()
+                .statusCode(OK.value());
+    }
+
     private Response createCountry(String countryName) {
         return given()
                 .body(countryName)

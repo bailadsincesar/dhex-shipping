@@ -45,4 +45,8 @@ public class CountryService {
     public List<Country> list() {
         return countryDao.listAll();
     }
+
+    public List<Country> listCountriesByStatus(Boolean enabled) {
+        return countryDao.listCountriesByStatus(enabled);
+    }
 }
