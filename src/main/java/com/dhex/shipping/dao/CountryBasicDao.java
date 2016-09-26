@@ -36,6 +36,7 @@ public class CountryBasicDao implements CountryDao {
     @Override
     public boolean update(Country country) {
         if(null != findCountry(country.getId())){
+            countries.remove(country);
             return countries.add(country);
         }
         return false;
