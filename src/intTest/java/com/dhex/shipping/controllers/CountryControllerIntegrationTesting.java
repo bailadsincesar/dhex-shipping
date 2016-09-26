@@ -1,6 +1,7 @@
 package com.dhex.shipping.controllers;
 
 import com.dhex.shipping.Application;
+import com.dhex.shipping.model.Country;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -32,17 +33,43 @@ public class CountryControllerIntegrationTesting {
 
     @Test
     public void shouldReturn201WhenCountryIsCreated() {
-        createCountry("Peru").then()
+        createCountry("Chile").then()
                 .assertThat()
                 .statusCode(CREATED.value())
-                .header("Location", "/country/Peru")
-                .body("name", is("Peru"));
+                .header("Location", "/country/Chile")
+                .body("name", is("Chile"));
     }
 
     @Test
     public void shouldReturn400WhenCountryAlreadyExists() {
         createCountry("Brasil");
         createCountry("Brasil").then()
+                .assertThat()
+                .statusCode(BAD_REQUEST.value());
+    }
+
+    @Test
+    public void shouldReturn200WhenCountryIsUpdated() throws Exception {
+        createCountry("Argentina");
+        createCountry("Pedu");
+        updateCountry(new Country(4, "Peru", true))
+        .then()
+                .assertThat()
+                .statusCode(OK.value());
+    }
+
+    private Response updateCountry(Country country) {
+        return given()
+                .contentType("application/json")
+                .body(country)
+        .when()
+                .put("/countries");
+    }
+
+    @Test
+    public void shouldReturn404WhenCountryNotExist() throws Exception {
+         updateCountry(new Country(24, "Peru", true))
+         .then()
                 .assertThat()
                 .statusCode(BAD_REQUEST.value());
     }
@@ -60,6 +87,17 @@ public class CountryControllerIntegrationTesting {
                 .statusCode(OK.value())
             .and()
                 .body("list.name", hasItems("Venezuela", "Ecuador", "Colombia"));
+    }
+
+    @Test
+    public void shouldReturn404WhenCountryIsNotFound() throws Exception {
+        given()
+                .body(300L)
+        .when()
+                .get("/countries/id")
+        .then()
+                .assertThat()
+                .statusCode(BAD_REQUEST.value());
     }
 
     private Response createCountry(String countryName) {

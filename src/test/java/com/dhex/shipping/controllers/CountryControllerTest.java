@@ -60,6 +60,17 @@ public class CountryControllerTest {
     }
 
     @Test
+    public void shouldReturnOKWhenCountryIsUpdated() throws Exception {
+        controller.create("Chile");
+        controller.create("Peruu");
+        Country countryToUpdate = new Country(2, "Peru", true);
+        when(countryService.update(countryToUpdate)).thenReturn(true);
+
+        ResponseEntity<Country> response = controller.update(countryToUpdate);
+        assertThat(response.getBody().getName(), is(countryToUpdate.getName()));
+    }
+
+    @Test
     public void shouldReturn200WhenListing() {
         ResponseEntity responseEntity = controller.list();
 

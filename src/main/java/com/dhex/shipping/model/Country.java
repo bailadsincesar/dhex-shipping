@@ -10,6 +10,10 @@ public class Country {
     private String name;
     private boolean enabled;
 
+    public Country(){
+        //Empty constructor
+    }
+
     public Country(long id, String name, boolean enabled) {
         this.id = id;
         this.name = name;

@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface CountryDao {
     Country insert(String countryName);
+    boolean update(Country country);
+    Country getCountry(long id);
 
     List<Country> listAll();
 }

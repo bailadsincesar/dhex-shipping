@@ -24,6 +24,15 @@ public class CountryService {
         return countryDao.insert(name);
     }
 
+    public boolean update(Country country){
+        validateName(country.getName());
+        return countryDao.update(country);
+    }
+
+    public Country get(long id){
+        return countryDao.getCountry(id);
+    }
+
     private void validateName(String name) {
         if(name == null || name.trim().isEmpty()) {
             throw new InvalidArgumentDhexException(EMPTY_NAME_ERROR_MESSAGE);
